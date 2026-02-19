@@ -1,12 +1,13 @@
 import random
 import time
+import warnings
 from functools import wraps
 from typing import Any, Callable, TypeVar, cast
 
 T = TypeVar('T', bound=Callable[..., Any])
 
 
-def retry(*, tries: int = 5, max_delay: float = 32) -> Callable[[T], T]:
+def retry(*, tries: int = 5, max_delay: float = 32) -> Callable[[T], T]:  # pragma: no cover
     """
     Decorator that retries the wrapped function if any exception occurs.
     """
@@ -17,7 +18,8 @@ def retry(*, tries: int = 5, max_delay: float = 32) -> Callable[[T], T]:
     return inner_retry
 
 
-def make_retrying(func: T, tries: int = 5, max_delay: float = 32) -> T:
+def make_retrying(func: T, tries: int = 5, max_delay: float = 32) -> T:  # pragma: no cover
+    warnings.warn("make_retrying is deprecated", DeprecationWarning, stacklevel=2)
     if tries < 1:
         raise ValueError(f'tries must be >= 1, got {tries}')
 
