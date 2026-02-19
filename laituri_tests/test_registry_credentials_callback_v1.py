@@ -29,7 +29,6 @@ def test_callback_retry(mocker, requests_mock, with_header: bool, image: str):
     rh = requests_mock.post(
         VALID_CALLBACK_CREDENTIALS['url'],
         [
-            {'status_code': 404},
             {'status_code': 500},
             {'exc': requests.exceptions.ConnectTimeout},
             {'status_code': 200},  # no JSON
@@ -46,6 +45,16 @@ def test_callback_retry(mocker, requests_mock, with_header: bool, image: str):
     headers = rh.request_history[-1].headers
     assert 'laituri/' in headers['user-agent']
     assert ('x-hello' in headers) == with_header
+
+
+@pytest.mark.parametrize('status_code', (400, 404))
+def test_callback_no_retry_on_client_error(requests_mock, status_code):
+    rh = requests_mock.post(VALID_CALLBACK_CREDENTIALS['url'], status_code=status_code)
+    with pytest.raises(CallbackFailed) as ei:
+        with get_credential_manager(image="foo/bar", registry_credentials=VALID_CALLBACK_CREDENTIALS):
+            pass
+    assert f"{status_code} Client Error" in str(ei.value)
+    assert len(rh.request_history) == 1  # One call, no retries
 
 
 def test_callback_error(mocker, requests_mock):
